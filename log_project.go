@@ -548,6 +548,7 @@ func (p *LogProject) CreateMetricConfig(metricStore string, metricConfig *Metric
 	if err != nil {
 		return NewClientError(err)
 	}
+
 	jsonBody := map[string]interface{}{
 		"metricStore":         metricStore,
 		"metricsConfigDetail": string(body),
@@ -568,9 +569,14 @@ func (p *LogProject) CreateMetricConfig(metricStore string, metricConfig *Metric
 	}
 	defer r.Body.Close()
 	body, err = ioutil.ReadAll(r.Body)
+	if err != nil {
+		return NewClientError(err)
+	}
 	if r.StatusCode != http.StatusOK {
 		err := new(Error)
-		json.Unmarshal(body, err)
+		if err := json.Unmarshal(body, err); err != nil {
+			return NewClientError(err)
+		}
 		return err
 	}
 	return nil
@@ -585,10 +591,15 @@ func (p *LogProject) DeleteMetricConfig(metricStore string) (err error) {
 		return NewClientError(err)
 	}
 	defer r.Body.Close()
-	body, _ := ioutil.ReadAll(r.Body)
+	body, err := ioutil.ReadAll(r.Body)
+	if err != nil {
+		return NewClientError(err)
+	}
 	if r.StatusCode != http.StatusOK {
 		err := new(Error)
-		json.Unmarshal(body, err)
+		if err := json.Unmarshal(body, err); err != nil {
+			return NewClientError(err)
+		}
 		return err
 	}
 	return nil
@@ -603,17 +614,22 @@ func (p *LogProject) GetMetricConfig(metricStore string) (*MetricsConfig, error)
 		return nil, NewClientError(err)
 	}
 	defer r.Body.Close()
-	buf, _ := ioutil.ReadAll(r.Body)
+	buf, err := ioutil.ReadAll(r.Body)
+	if err != nil {
+		return nil, NewClientError(err)
+	}
 	if r.StatusCode != http.StatusOK {
 		err := new(Error)
-		json.Unmarshal(buf, err)
+		if err := json.Unmarshal(buf, err); err != nil {
+			return nil, NewClientError(err)
+		}
 		return nil, err
 	}
+
 	type OuterJSON struct {
 		MetricStore         string `json:"metricStore"`
 		MetricsConfigDetail string `json:"metricsConfigDetail"`
 	}
-
 	var outerData OuterJSON
 	if err := json.Unmarshal(buf, &outerData); err != nil {
 		log.Fatalf("Error parsing outer JSON: %v", err)
@@ -648,10 +664,6 @@ func (p *LogProject) UpdateMetricConfig(metricStore string, metricConfig *Metric
 	if err != nil {
 		return NewClientError(err)
 	}
-	body, err = json.Marshal(jsonBody)
-	if err != nil {
-		return NewClientError(err)
-	}
 
 	h := map[string]string{
 		"x-log-bodyrawsize": fmt.Sprintf("%v", len(body)),
@@ -663,10 +675,16 @@ func (p *LogProject) UpdateMetricConfig(metricStore string, metricConfig *Metric
 		return NewClientError(err)
 	}
 	defer r.Body.Close()
-	body, _ = ioutil.ReadAll(r.Body)
+	body, err = ioutil.ReadAll(r.Body)
+	if err != nil {
+		return NewClientError(err)
+	}
+
 	if r.StatusCode != http.StatusOK {
 		err := new(Error)
-		json.Unmarshal(body, err)
+		if err := json.Unmarshal(body, err); err != nil {
+			return NewClientError(err)
+		}
 		return err
 	}
 	return nil

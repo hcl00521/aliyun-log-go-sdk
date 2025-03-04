@@ -1,6 +1,5 @@
 package sls
 
-// 定义子结构体
 type MetricQueryCacheConfig struct {
 	Enable bool `json:"enable"`
 }
@@ -61,7 +60,6 @@ type ProjectStore struct {
 	MetricStore string `json:"metricstore"`
 }
 
-// 定义主结构体
 type MetricsConfig struct {
 	QueryCacheConfig        MetricQueryCacheConfig         `json:"query_cache_config"`
 	ParallelConfig          MetricParallelConfig           `json:"parallel_config"`
