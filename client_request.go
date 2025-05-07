@@ -3,7 +3,6 @@ package sls
 // request sends a request to SLS.
 import (
 	"bytes"
-	"encoding/json"
 	"fmt"
 
 	"io/ioutil"
@@ -132,13 +131,12 @@ func (c *Client) request(project, method, uri string, headers map[string]string,
 
 	// Parse the sls error from body.
 	if resp.StatusCode != http.StatusOK {
-		err := &Error{}
-		err.HTTPCode = (int32)(resp.StatusCode)
 		defer resp.Body.Close()
-		buf, _ := ioutil.ReadAll(resp.Body)
-		json.Unmarshal(buf, err)
-		err.RequestID = resp.Header.Get("x-log-requestid")
-		return nil, err
+		buf, err := ioutil.ReadAll(resp.Body)
+		if err != nil {
+			return nil, readResponseError(err)
+		}
+		return nil, httpStatusNotOkError(buf, resp.Header, resp.StatusCode)
 	}
 	if IsDebugLevelMatched(5) {
 		dump, e := httputil.DumpResponse(resp, true)

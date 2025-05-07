@@ -119,7 +119,10 @@ func (c *Client) GetETL(project string, etlName string) (ETLJob *ETL, err error)
 		return nil, err
 	}
 	defer r.Body.Close()
-	buf, _ := ioutil.ReadAll(r.Body)
+	buf, err := ioutil.ReadAll(r.Body)
+	if err != nil {
+		return nil, readResponseError(err)
+	}
 	etlJob := &ETL{}
 	if err = json.Unmarshal(buf, etlJob); err != nil {
 		err = NewClientError(err)
@@ -171,7 +174,10 @@ func (c *Client) ListETL(project string, offset int, size int) (*ListETLResponse
 		return nil, err
 	}
 	defer r.Body.Close()
-	buf, _ := ioutil.ReadAll(r.Body)
+	buf, err := ioutil.ReadAll(r.Body)
+	if err != nil {
+		return nil, readResponseError(err)
+	}
 
 	listETLResponse := &ListETLResponse{}
 	if err = json.Unmarshal(buf, listETLResponse); err != nil {
